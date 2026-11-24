@@ -1,0 +1,181 @@
+/* FootballIQ 3D Depth Editorial Hero System */
+
+.hero-editorial-container {
+  position: relative;
+  width: 100%;
+  min-height: calc(100vh - 72px);
+  height: 840px;
+  background-color: #FFFFFF;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  user-select: none;
+}
+
+/* Layer 1 — Background Stadium Atmosphere */
+.hero-background-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.hero-background-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%;
+  filter: grayscale(100%) brightness(95%) contrast(98%) blur(6px);
+  -webkit-filter: grayscale(100%) brightness(95%) contrast(98%) blur(6px);
+  opacity: 0.55;
+  transform: scale(1.04);
+}
+
+.hero-bg-top-fade {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 90px;
+  background: linear-gradient(to bottom, #FFFFFF 0%, transparent 100%);
+}
+
+.hero-bg-bottom-fade {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 220px;
+  background: linear-gradient(to top, #FFFFFF 0%, rgba(255, 255, 255, 0.8) 50%, transparent 100%);
+}
+
+/* Layer 2 — Soft Atmospheric Fog / Halo Layer */
+.hero-halo-layer {
+  position: absolute;
+  top: 25%;
+  left: 50%;
+  transform: translate(-50%, -20%);
+  width: 100%;
+  max-width: 1100px;
+  height: 480px;
+  background: radial-gradient(ellipse 70% 50% at 50% 40%, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.35) 60%, transparent 100%);
+  z-index: 2;
+  pointer-events: none;
+  backdrop-filter: blur(1px);
+}
+
+/* Layer 3 — Typography Layer (Headline & Label) */
+.hero-typography-layer {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  max-width: 1290px;
+  padding: 12vh 24px 0 24px;
+}
+
+.hero-eyebrow-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #202020;
+  margin-bottom: 20px;
+}
+
+.hero-ember-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #FF682C;
+  display: inline-block;
+}
+
+.hero-headline-h1 {
+  font-family: 'Inter Tight', 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  font-weight: 400;
+  font-size: clamp(40px, 5.2vw, 66px);
+  line-height: 0.91;
+  letter-spacing: -1.32px;
+  color: #202020;
+  max-width: 820px;
+  margin-bottom: 36px;
+  text-shadow: 0 1px 12px rgba(255, 255, 255, 0.8);
+}
+
+/* Layer 4 — Isolated Player Cutout Layer (Emerges over headline, performs scroll depth merge) */
+.hero-player-layer {
+  position: absolute;
+  top: 180px;
+  left: 0;
+  right: 0;
+  height: 660px;
+  z-index: 4;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  pointer-events: none;
+  will-change: transform, opacity, filter;
+}
+
+.hero-player-cutout-img {
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: center top;
+  filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.16)) grayscale(100%) contrast(105%);
+  -webkit-filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.16)) grayscale(100%) contrast(105%);
+}
+
+/* Layer 5 — Search UI Layer (Sharp, topmost, interactive) */
+.hero-ui-layer {
+  position: relative;
+  z-index: 5;
+  width: 100%;
+  max-width: 680px;
+  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .hero-editorial-container {
+    height: 760px;
+  }
+  .hero-player-layer {
+    top: 200px;
+    height: 540px;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-editorial-container {
+    height: 680px;
+    min-height: 580px;
+  }
+  .hero-typography-layer {
+    padding-top: 10vh;
+  }
+  .hero-headline-h1 {
+    font-size: 42px;
+    letter-spacing: -0.9px;
+    line-height: 0.95;
+    margin-bottom: 24px;
+  }
+  .hero-player-layer {
+    top: 240px;
+    height: 420px;
+  }
+}

@@ -1,0 +1,1115 @@
+================================================================================
+FOOTBALLIQ — EUROPEAN FOOTBALL PLAYER MARKET VALUATION SAAS
+COMPLETE TECHNICAL PROJECT DOCUMENTATION
+================================================================================
+File: FootballIQ_Project_Documentation.txt
+Project Root: C:\Users\Rayan Das\Desktop\Projects\laliga
+Author/Maintainer: FootballIQ Engineering Team & Antigravity AI Systems
+Document Version: 1.0.0
+Date of Verification: 2026-11-07
+Format: Plain Text Documentation for Future Developers and AI Agents
+================================================================================
+
+
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+1.  PROJECT OVERVIEW
+2.  IMPLEMENTATION AUDIT & FEATURE CLASSIFICATION
+3.  PROJECT DIRECTORY STRUCTURE & FILE MANIFEST
+4.  DESIGN SYSTEM & EDITORIAL AESTHETIC SPECIFICATION
+5.  HERO SECTION: 3D DEPTH, LAYERING & SCROLL INTERACTION
+6.  FRONTEND ARCHITECTURE (REACT + VITE)
+7.  BACKEND ARCHITECTURE (FASTAPI)
+8.  DATABASE & DATASET SPECIFICATIONS
+9.  MACHINE LEARNING PIPELINE & VALUATION ENGINE
+10. PLAYER IMAGE SYSTEM & ASSET ARCHITECTURE
+11. END-TO-END DATA FLOW & API COMMUNICATION
+12. INSTALLATION, CONFIGURATION & EXECUTION MANUAL
+13. KNOWN ISSUES, TECHNICAL LIMITATIONS & ROADMAP
+14. COMPREHENSIVE IMPLEMENTATION STATUS MATRIX
+
+
+================================================================================
+1. PROJECT OVERVIEW
+================================================================================
+
+1.1 Project Identity & Classification
+- Name: FootballIQ
+- Nature: AI-powered European football player market valuation platform (SaaS).
+- Delivery Medium: Web application featuring a modern React frontend and a
+  high-performance FastAPI backend serving serialized machine learning pipelines.
+- Core Identity: An editorial football market observatory combining broadsheet
+  typographic precision with statistical modeling, avoiding generic dashboard
+  and neon-heavy gaming aesthetics.
+
+1.2 Problem Statement
+European association football transfers represent a multi-billion euro global
+market characterised by substantial information asymmetry, speculative pricing,
+and subjective valuation biases. Club sporting directors, recruitment analysts,
+scouts, journalists, and fans often rely on heuristic estimates or proprietary
+portals whose methodologies lack transparent statistical modeling. Market values
+are heavily skewed by club financial clout, league profile, and viral media
+hype rather than underlying per-90 pitch output, underlying expected metrics
+(xG, xA), and contextual athletic parameters.
+
+1.3 Proposed Solution
+FootballIQ provides a rigorous, data-driven player valuation observatory. By
+aggregating granular match performance metrics across 3,670 European player
+profiles spanning 8 major leagues, FootballIQ applies advanced gradient boosting
+regression to infer fair market valuations (in Euros). The platform provides
+transparent model inputs, per-90 feature normalizations, relative valuation
+benchmarks, and instant multi-metric profiling without black-box opacity.
+
+1.4 Target Audience & User Personas
+- Football Analysts & Data Scouts: Assessing transfer targets against league-wide
+  efficiency benchmarks and identifying undervalued assets.
+- Club Sporting Directors & Recruitment Staff: Sanity-checking asking prices and
+  salary-to-valuation ratios using statistically normalized performance inputs.
+- Sports Journalists & Content Creators: Referencing objective market valuations
+  and editorial performance snapshots for transfer deadline reports.
+- Dedicated Supporters & Enthusiasts: Interactively testing hypothetical player
+  performance curves, simulating valuation changes based on goal or assist tallies.
+
+1.5 Primary Objectives & Expected Outcomes
+- Deliver sub-100ms inference on player market values via a modular REST API.
+- Provide a clean, distraction-free editorial frontend adhering to a strict
+  achromatic visual design system (Graphite, Canvas White, Ash, Ember Orange).
+- Normalize raw statistical totals into per-90 metrics to eliminate bias towards
+  players who accumulated high volumes solely through playing time.
+- Normalize valuation distributions via natural logarithmic transformations
+  (log1p) to accurately model both lower-tier squad players and elite €150M+
+  outliers without distortion.
+
+
+================================================================================
+2. IMPLEMENTATION AUDIT & FEATURE CLASSIFICATION
+================================================================================
+
+This audit strictly distinguishes between fully working features, partially
+implemented elements, planned architecture, and unverified components based on
+source-code inspection and runtime execution.
+
+[A] Fully Implemented Features:
+1. Backend REST API (FastAPI):
+   - GET / (Service metadata and documentation pointers).
+   - GET /health (Live model availability check and path resolution).
+   - POST /api/v1/predict (Full Pydantic payload validation, automatic per-90
+     feature calculation, log-space prediction, expm1 inverse transformation).
+   - Global exception handling and JSON error formatting.
+2. Dual-Engine Prediction Architecture:
+   - Primary: Scikit-learn Pipeline (ColumnTransformer + GradientBoostingRegressor)
+     loaded from `footballiq_best_model.joblib`.
+   - Fallback: Pure NumPy Ridge regression solver (`_init_numpy_engine`) solving
+     (X^T X + λI)^-1 X^T y from `cleaned_player_data.csv` on runtime failure.
+3. Machine Learning Modeling & Artifacts:
+   - 5-fold cross-validated comparison pipeline across 7 regressor families.
+   - Serialized joblib artifact (`footballiq_best_model.joblib`).
+   - Generation of EDA plots and model performance diagnostics in `eda_plots/`
+     and `model_results/`.
+4. Frontend Application Shell & Routing (React + Vite + React Router):
+   - Multi-route client-side router (`/`, `/predict`, `/valuation`, `/result`,
+     `/players`, `/methodology`).
+   - Editorial sticky header (`Navbar.jsx`) with mobile drawer navigation and
+     active orange underline accents.
+   - Comprehensive footer (`Footer.jsx`) with dynamic year, platform status pill,
+     and league coverage directories.
+   - Global CSS tokens (`tokens.css`) enforcing spacing, typography, and palette.
+5. Interactive Player Database (`Players.jsx`):
+   - Full client-side dataset browsing across 3,670 player records.
+   - Text search filter, league dropdown, position filter, column sorting
+     (Name, League, Position, Market Value, Rating), and pagination (20 per page).
+   - Row-level "Evaluate" action routing selected profile into the prediction engine.
+6. Valuation Engine Form & Results (`PredictionForm.jsx`, `PredictionResult.jsx`):
+   - Form pre-filling from selected database records or preset player chips
+     (Bukayo Saka, Viktor Gyökeres, Martin Odegaard, Declan Rice, Eberechi Eze).
+   - Comprehensive numerical inputs (playing time, attacking stats, xG, xA,
+     defensive actions, discipline, rating).
+   - Form validation displaying inline error notices.
+   - Valuation result card featuring raw Euro valuation, formatted string,
+     supporting metric cards, and horizontal comparative benchmark bars.
+7. Scroll Reveal & Intersection Observer Animations:
+   - `SectionReveal.jsx` and `useScrollReveal.js` driving progressive fade-and-rise
+     scroll reveals using `cubic-bezier(0.22, 1, 0.36, 1)`.
+
+[B] Partially Implemented Features:
+1. Hero Section Scroll Depth Effect (`Hero.jsx`):
+   - Multi-layer 3D stacking is implemented using 5 absolute CSS layers
+     (stadium background, halo blur, typography, Jude Bellingham cutout, search bar).
+   - Scroll-linked scale, opacity, blur, and translation are implemented via
+     `requestAnimationFrame` and scroll listeners.
+   - Discrepancy: Implemented piecewise keyframe values differ slightly from the
+     original design document target milestones (documented in Section 5).
+2. Standalone Result Route (`Result.jsx`):
+   - The `/result` route is registered in `App.jsx`, but the primary flow in
+     `Predict.jsx` conditionally renders `<PredictionResult />` directly in-place
+     instead of pushing to `/result`. `/result` only renders if state is passed
+     explicitly, showing an empty state otherwise.
+3. Secondary Search Component (`SearchBar.jsx`):
+   - An older `SearchBar.jsx` component exists in `src/components/`, while `Hero.jsx`
+     utilizes the newer `PlayerSearch.jsx` component.
+
+[C] Planned / Not Implemented Features:
+1. Dynamic Player Image Roster / Individual Cutouts:
+   - The dataset (`playersData.json`, `cleaned_player_data.csv`) contains NO image
+     URLs or player photo references.
+   - The local asset directories contain only Jude Bellingham hero imagery and one
+     generic player portrait (`player_portrait.png`).
+   - Selecting a player does NOT display that specific player's portrait on the
+     result page or prediction form.
+2. Production Database Storage (SQL / PostgreSQL / SQLite):
+   - The project currently relies entirely on static CSV files and a bundled
+     `playersData.json` file (3.36 MB). No external relational database or ORM
+     is connected.
+3. Authentication, User Accounts & Saved Valuations:
+   - The UI includes "Sign in" and "Get started" CTA links, but no authentication
+     backend, user session management, or valuation saving functionality exists.
+4. Historical Valuation Tracking / Multi-Season Progression:
+   - Visual charts show relative comparisons against static multipliers rather
+     than true historical player valuation time-series curves.
+
+[D] Broken / Unverified Features:
+1. Standalone `PlayerPortrait.jsx` Component:
+   - Implemented in `src/components/PlayerPortrait.jsx` with desktop parallax,
+     warm halo, and micro-annotations, but is currently UNMOUNTED in all active
+     pages (unused in `Home.jsx` and `Predict.jsx`).
+2. Python 3.14 Joblib Unpickling Latency:
+   - On Windows environments running Python 3.14, loading `footballiq_best_model.joblib`
+     experiences an initial 15-20 second cold-start delay during module import
+     due to OpenMP/threadpool initialization checks in scikit-learn.
+
+
+================================================================================
+3. PROJECT DIRECTORY STRUCTURE & FILE MANIFEST
+================================================================================
+
+3.1 Repository Directory Tree
+--------------------------------------------------------------------------------
+laliga/
+│
+├── .env                              # Frontend environment config (VITE_API_BASE_URL)
+├── index.html                        # Application entry HTML template with Google Fonts
+├── package.json                      # Node.js project manifest and dependency definitions
+├── package-lock.json                 # Exact Node.js lockfile
+├── postcss.config.js                 # PostCSS configuration for Tailwind CSS
+├── tailwind.config.js                # Tailwind CSS design token configurations
+├── vite.config.js                    # Vite dev server and build configuration
+├── requirements.txt                  # Python backend and ML dependencies
+├── README.md                         # Existing API summary and startup guide
+├── test_api.py                       # FastAPI backend test suite using Starlette TestClient
+├── train_models.py                   # Machine learning training, cross-validation & tuning script
+├── footballiq_best_model.joblib      # Serialized scikit-learn pipeline model artifact
+├── FootballIQ_Project_Documentation.txt # This master documentation file
+│
+├── all_player_profiles.csv           # Raw dataset: Player metadata and market values (4,588 rows)
+├── all_player_stats.csv              # Raw dataset: Player seasonal match statistics (3,730 rows)
+├── cleaned_player_data.csv           # Merged and preprocessed dataset (3,670 rows × 35 cols)
+│
+├── DESIGN (2).md                     # Style reference: Ventriloc editorial data observatory
+├── FootballIQ_Antigravity_Prompt.md  # Original engineering prompt and guidelines
+├── FootballIQ_Final_Design.md        # Definitive visual design specification
+├── FootballIQ_Flow.md                # Application user flow and route specifications
+│
+├── app/                              # Backend FastAPI Application Package
+│   ├── __init__.py                   # Package marker
+│   ├── main.py                       # FastAPI server instance, CORS, routers & error handlers
+│   ├── models.py                     # Pydantic request and response schemas with per-90 validators
+│   └── predictor.py                  # Dual-engine prediction service (joblib + NumPy fallback)
+│
+├── src/                              # Frontend React Source Directory
+│   ├── main.jsx                      # React 18 DOM mount point
+│   ├── App.jsx                       # Root router configuration and layout wrapper
+│   ├── index.css                     # Global reset, typography, animations, Tailwind directives
+│   │
+│   ├── components/                   # Reusable UI Components
+│   │   ├── Navbar.jsx                # Sticky header navigation with mobile drawer
+│   │   ├── Navbar.css                # Navbar desktop and mobile navigation styles
+│   │   ├── Hero.jsx                  # 5-layer 3D hero with scroll-linked player recession
+│   │   ├── Hero.css                  # Hero layout, layering, z-index and media queries
+│   │   ├── PlayerSearch.jsx          # Live autocomplete player search with keyboard navigation
+│   │   ├── SearchBar.jsx             # Alternative/legacy search component
+│   │   ├── SearchBar.css             # SearchBar styling
+│   │   ├── PlayerPortrait.jsx        # Standalone editorial player portrait (unmounted)
+│   │   ├── PlayerPortrait.css        # Player portrait styling, halo and dotted grid
+│   │   ├── PredictionForm.jsx        # Comprehensive 17-input valuation configuration form
+│   │   ├── PredictionForm.css        # Form styling, preset chips and responsive grid
+│   │   ├── PredictionResult.jsx      # Valuation summary display, metric grid and actions
+│   │   ├── PredictionResult.css      # Valuation display typography and layout
+│   │   ├── MetricCard.jsx            # Single metric card displaying label, value, subtext
+│   │   ├── MetricCard.css            # Metric card styling and Ember Orange dot accents
+│   │   ├── ValuationChart.jsx        # Comparative benchmark horizontal bar charts
+│   │   ├── ValuationChart.css        # Valuation chart bar track and animation styling
+│   │   ├── SectionReveal.jsx         # IntersectionObserver wrapper for scroll animations
+│   │   ├── Footer.jsx                # Editorial footer with brand note, directories & status
+│   │   └── Footer.css                # Footer responsive grid and styling
+│   │
+│   ├── pages/                        # Page-Level Views
+│   │   ├── Home.jsx                  # Landing page (Hero, Process, Featured, Methodology callout)
+│   │   ├── Home.css                  # Home page section styling
+│   │   ├── Predict.jsx               # Valuation engine container managing form/result states
+│   │   ├── Predict.css               # Predict page container styling
+│   │   ├── Players.jsx               # Full 3,670-player database browser with table & filters
+│   │   ├── Players.css               # Database table, filter bar and pagination styling
+│   │   ├── Methodology.jsx           # Technical architecture, formula and validation page
+│   │   ├── Methodology.css           # Methodology grid, formula box and table styling
+│   │   └── Result.jsx                # Dedicated valuation result route (fallback view)
+│   │
+│   ├── services/
+│   │   └── api.js                    # Fetch client communicating with FastAPI endpoints
+│   │
+│   ├── hooks/
+│   │   └── useScrollReveal.js        # Custom React hook for IntersectionObserver initialization
+│   │
+│   ├── styles/
+│   │   └── tokens.css                # CSS custom properties (colors, typography, spacing, radii)
+│   │
+│   └── data/
+│       └── playersData.json          # Pre-compiled JSON database of all 3,670 cleaned players
+│
+├── public/                           # Static Public Assets
+│   ├── footballiq-logo.svg           # Primary brand vector logo
+│   ├── hero-player-cutout.png        # Transparent PNG cutout of Jude Bellingham (2.54 MB)
+│   ├── hero-player.png               # Hero background composite image (2.09 MB)
+│   ├── hero-stadium-bg.png           # Atmospheric stadium background image (243 KB)
+│   ├── jude_bellingham.png           # Alternative Bellingham photography asset (718 KB)
+│   ├── player_portrait.png           # Generic monochrome editorial player portrait (633 KB)
+│   └── assets/                       # Mirrored static assets for Vite deployment compatibility
+│       ├── footballiq-logo.svg
+│       ├── hero-player-cutout.png
+│       ├── hero-player.png
+│       └── hero-stadium-bg.png
+│
+├── eda_plots/                        # Exploratory Data Analysis Output Visualizations
+│   ├── correlation_heatmap.png       # Correlation matrix of 30+ performance variables
+│   ├── market_value_by_league.png    # Valuation distribution boxplots across 8 European leagues
+│   ├── market_value_by_position.png  # Valuation variance across Forwards, Midfielders, etc.
+│   ├── market_value_distribution.png # Skewed raw distribution vs log-transformed distribution
+│   └── outliers_minutes_vs_value.png # Scatter plot identifying high-value playing time outliers
+│
+├── model_results/                    # Machine Learning Benchmark Outputs
+│   ├── model_comparison_results.csv  # 5-fold cross-validation metrics across all candidate models
+│   ├── model_comparison_mae.png      # Bar chart of Mean Absolute Error across model candidates
+│   ├── feature_importance.png        # Bar chart of top 20 predictive features from Gradient Boosting
+│   └── predicted_vs_actual.png       # Scatter plot of model predictions vs actual market values
+│
+└── dist/                             # Compiled Production Build Artifacts (from vite build)
+    ├── index.html
+    └── assets/
+        ├── index-[hash].js           # Minified bundle (2.99 MB)
+        └── index-[hash].css          # Minified stylesheet (33.7 KB)
+
+--------------------------------------------------------------------------------
+3.2 Purpose of Critical Non-Code Files
+- `cleaned_player_data.csv`: The canonical tabular foundation containing 3,670
+  merged rows, zero null values, engineered per-90 metrics, and log targets.
+- `playersData.json`: A JSON export of the cleaned CSV located inside `src/data/`,
+  enabling instantaneous client-side searching, filtering, and preset loading
+  without requiring a dedicated backend database server.
+- `footballiq_best_model.joblib`: The production-trained Scikit-learn Pipeline
+  containing a ColumnTransformer and a tuned GradientBoostingRegressor model.
+
+
+================================================================================
+4. DESIGN SYSTEM & EDITORIAL AESTHETIC SPECIFICATION
+================================================================================
+
+4.1 Visual Philosophy
+FootballIQ rejects the visual cliches of consumer web apps: neon gradients,
+glassmorphism, floating dashboard widgets, rounded candy buttons, and aggressive
+micro-interactions. Instead, it embodies a quiet, high-authority "editorial data
+observatory" modeled on prestige financial print journals and technical football
+analytics publications.
+
+Key Principles:
+- Approximately 95% Achromatic: Visual rhythm is established through tonal warm
+  grays, high-contrast typography, and generous whitespace.
+- Restrained Color Punctuation: Ember Orange (#FF682C) is never used as a filled
+  button background; it serves exclusively as a functional accent (live status
+  dots, active tab underlines, small data highlights).
+- Architectural Geometry: Sharp rectangular buttons (border-radius: 0px) create
+  deliberate tension against subtly rounded data containers.
+- Editorial Photography: Football players are presented in high-contrast,
+  monochromatic, desaturated portraits rather than vibrant action collages.
+- Unobstructed Subjects: Player portraits are never covered by floating stat
+  cards, chart overlays, or large valuation callout boxes.
+
+4.2 Exact Color Palette Tokens
+All colors are centralized in `src/styles/tokens.css` and mapped to CSS custom
+properties:
+
+Token Name              CSS Variable            Hex Code    Role & Implementation
+--------------------------------------------------------------------------------
+Graphite                --color-graphite        #202020     Primary headings, dark buttons, borders
+Canvas White            --color-canvas-white    #FFFFFF     Primary page background, card surfaces
+Ash                     --color-ash             #EFEFEF     Section backgrounds, subtle card fills
+Fog                     --color-fog             #F5F5F5     Nested containers, secondary surfaces
+Ivory                   --color-ivory           #EBE6DD     Warm paper wash for editorial callouts
+Steel                   --color-steel           #4D4D4D     Secondary body text, long-form paragraphs
+Slate                   --color-slate           #828282     Muted metadata, inactive tabs, captions
+Mist                    --color-mist            #E8E8E8     Hairline dividers, borders, table rules
+Ember Orange            --color-ember-orange    #FF682C     Punctuation dots, active underlines, accents
+Brass                   --color-brass           #816729     Secondary chart bars, benchmark highlights
+
+Additional Semantic Canvas Overrides (in `src/index.css`):
+- Canvas Off-White: #F7F6F3
+- Primary Text Black: #1A1A1A
+- Hairline Border: #E6E4DF
+- Button Dark: #1F1F1F (Hover: #333333)
+
+4.3 Typography System
+Primary Headings & Display:
+- Font Family: 'PolySans' (Custom neo-grotesque).
+- Fallbacks: 'Inter Tight', 'Space Grotesk', system-ui, -apple-system, sans-serif.
+- Display Size (Desktop): 66px (clamp(40px, 5.2vw, 66px)).
+- Display Line Height: 0.91 (extremely tight editorial leading).
+- Display Letter Spacing: -1.32px (-0.02em tracking).
+- Weight: 400 (Regular). Never bolded, creating understated authority.
+
+Body Copy & User Interface:
+- Font Family: 'Inter', system-ui, -apple-system, sans-serif.
+- Weights: 400 (Regular body), 500 (Medium UI labels), 600 (Semibold headers).
+- Sizes:
+  * Hero Eyebrow / Micro Labels: 13px (uppercase, tracking: 0.18em / +2.34px).
+  * Body Text: 15px - 16px (line-height: 1.5).
+  * Supporting Metadata: 12px - 13px.
+
+4.4 Shape Language & Corner Radii
+Element Type            Border Radius Token     Value       Visual Purpose
+--------------------------------------------------------------------------------
+Primary Buttons         --radius-button         0px         Sharp rectangular brutalist contrast
+Standard Cards          --radius-card           8px         Subtle boundary definition
+Data / Metric Cards     --radius-data-card      20px        Soft container for statistical metrics
+Status Badges & Tags    --radius-tag            20px        Rounded informational capsules
+Navigation Pill         --radius-pill           200px       Floating pill aesthetic
+Asymmetric Card         --radius-asymmetric     6px 0 0 0   Editorial accent block styling
+
+
+================================================================================
+5. HERO SECTION: 3D DEPTH, LAYERING & SCROLL INTERACTION
+================================================================================
+
+5.1 Architectural Stacking & Z-Index Hierarchy
+The Hero section (`src/components/Hero.jsx` and `src/components/Hero.css`) is
+engineered as an editorial 3D composition with 5 distinct physical layers:
+
+Layer 1 — Background Stadium Atmosphere (z-index: 1):
+- Element: `.hero-background-layer` containing `hero-player.png`.
+- Styling: Positioned absolute, object-fit cover, scaled to 1.04, opacity 0.55.
+- Filters: `grayscale(100%) brightness(95%) contrast(98%) blur(6px)`.
+- Framing: Top linear gradient fade (90px height) and bottom linear gradient
+  fade (220px height) smoothly merging into Canvas White (#FFFFFF).
+
+Layer 2 — Soft Atmospheric Fog / Halo (z-index: 2):
+- Element: `.hero-halo-layer`.
+- Styling: Centered radial gradient ellipse (70% × 50% at 50% 40%) with opacity
+  shifting from rgba(255,255,255,0.85) to transparent, combined with a 1px blur.
+- Function: Creates an ethereal glow behind the subject, separating foreground
+  from the stadium stands.
+
+Layer 3 — Typography Layer (z-index: 3):
+- Element: `.hero-typography-layer`.
+- Contents:
+  1. Eyebrow label: "AI-POWERED PLAYER VALUATION" + 6px Ember Orange pulsing dot.
+  2. Display Headline: "Know what a player is worth." (66px, weight 400).
+- Text shadow: `0 1px 12px rgba(255, 255, 255, 0.8)` ensuring total legibility
+  against background contours.
+
+Layer 4 — Isolated Player Cutout Layer (z-index: 4):
+- Element: `.hero-player-layer` containing `hero-player-cutout.png` (Jude Bellingham).
+- Cutout Dimensions: Height 660px, width auto, object-fit contain.
+- Filters: `grayscale(100%) contrast(105%) drop-shadow(0 14px 28px rgba(0,0,0,0.16))`.
+- Alignment: Sits directly in the center, emerging in front of the stadium but
+  positioned so that facial features and upper torso remain completely
+  unobstructed by typography or input boxes.
+
+Layer 5 — Search UI Layer (z-index: 5):
+- Element: `.hero-ui-layer` hosting `<PlayerSearch />`.
+- Composition: Top-level interactive search input (height 60px) paired with a
+  0px-radius "Get valuation →" Graphite button. Positioned below the headline,
+  allowing seamless user entry without occluding the player portrait.
+
+5.2 Scroll-Linked Depth Interaction: Specification vs Implementation
+The intended design specification outlines a multi-stage recession where the
+foreground player cutout appears to step backwards into the stadium mist as the
+user initiates scrolling, while the headline and navigation remain crisp.
+
+Target Specification Milestones:
+- Scroll 0%:   Scale: 1.00 | Opacity: 1.00 | Blur: 0.0px | Position: Normal
+- Scroll 25%:  Scale: 0.93 | Opacity: 0.96 | Blur: 0.5px | Slight depth recession
+- Scroll 50%:  Scale: 0.82 | Opacity: 0.85 | Blur: 1.5px | Mid-plane transition
+- Scroll 75%:  Scale: 0.68 | Opacity: 0.65 | Blur: 3.0px | Entering background
+- Scroll 100%: Scale: 0.55 | Opacity: 0.35 | Blur: 6.0px | Merged into background
+
+Actual Code Implementation in `src/components/Hero.jsx`:
+The actual implementation uses a piece-wise linear interpolation running inside a
+`requestAnimationFrame` loop tracking `window.scrollY` over a `maxScroll = 450px`
+domain:
+
+Progress Range  Scale Range     Opacity Range   Blur Range      TranslateY Range
+--------------------------------------------------------------------------------
+0.00 – 0.25     1.00 → 0.92     1.00 → 0.95     0.0px → 0.5px   0px → -12px
+0.25 – 0.50     0.92 → 0.80     0.95 → 0.82     0.5px → 2.0px   -12px → -28px
+0.50 – 0.75     0.80 → 0.68     0.82 → 0.60     2.0px → 4.0px   -28px → -44px
+0.75 – 1.00     0.68 → 0.55     0.60 → 0.30     4.0px → 7.0px   -44px → -60px
+
+Differences Noted:
+1. At 50% scroll: Implemented opacity is 0.82 (spec: 0.85); blur is 2.0px (spec: 1.5px).
+2. At 75% scroll: Implemented opacity is 0.60 (spec: 0.65); blur is 4.0px (spec: 3.0px).
+3. At 100% scroll: Implemented opacity is 0.30 (spec: 0.35); blur is 7.0px (spec: 6.0px).
+4. Vertical translation: The code adds an explicit vertical drift (-60px total)
+   to ensure the player recedes upwards into the viewport fold smoothly.
+5. Tested Status: Fully functional and verified in browser environments. Responds
+   passively to scroll events with zero layout thrashing.
+
+
+================================================================================
+6. FRONTEND ARCHITECTURE (REACT + VITE)
+================================================================================
+
+6.1 Technology Stack & Tooling
+- Core Library: React 18.3.1 (using functional components and hooks).
+- Build Tool: Vite 5.4.21 (Fast ESM development and Rollup production bundling).
+- Router: React Router DOM 6.26.2 (declarative client-side routing).
+- Iconography: Lucide React 0.439.0 (clean 1.5px–2px stroke vector icons).
+- Styling Architecture: Hybrid architecture pairing Tailwind CSS utility classes
+  with custom component CSS modules and centralized CSS custom properties (`tokens.css`).
+- Code Transpilation: @vitejs/plugin-react 4.3.1.
+
+6.2 Route Architecture (`src/App.jsx`)
+The application defines 6 primary routes wrapped in `<ScrollToTop />`:
+- `/`: `<Home />` — Editorial landing page featuring the 3D Hero, "How It Works"
+  process breakdown, sample player cards, and methodology teaser.
+- `/predict`: `<Predict />` — Interactive valuation engine containing the full
+  input configuration form, loading indicators, and in-place valuation results.
+- `/valuation`: `<Predict />` — Route alias redirecting to `<Predict />`, handling
+  query string parameters (e.g. `/valuation?player=Jude%20Bellingham`).
+- `/result`: `<Result />` — Standalone valuation report route displaying a
+  dedicated summary view when routed with navigation state.
+- `/players`: `<Players />` — Comprehensive 3,670-player database browser with
+  search, multi-column sorting, league/position filters, and pagination.
+- `/methodology`: `<Methodology />` — Deep technical documentation page detailing
+  data sources, log transformation formulas, feature engineering, and metrics.
+
+6.3 Component Breakdown
+- `Navbar.jsx`: Desktop horizontal nav with active page indicator (Ember Orange
+  hairline) and mobile hamburger drawer. Includes "Get started" CTA button.
+- `Hero.jsx`: Multi-layered visual anchor executing the 3D player recession effect.
+- `PlayerSearch.jsx`: Autocomplete input querying `playersData.json`. Supports
+  debounced filtering, arrow key navigation (Up/Down/Enter/Escape), and outside-click
+  dismissal.
+- `PredictionForm.jsx`: Dynamic form offering 17 inputs grouped into "Context &
+  Profile", "Match Time & Involvement", "Attacking Output", "Shooting Efficiency",
+  and "Defensive & Discipline". Features 5 quick preset profile chips.
+- `PredictionResult.jsx`: Renders the calculated market value (€), confidence
+  score (94.2%), supporting metric cards, and horizontal valuation benchmarks.
+- `MetricCard.jsx`: Reusable stat display with custom labels, values, subtexts,
+  and optional orange ember dots.
+- `ValuationChart.jsx`: Custom CSS bar chart presenting comparative baselines:
+  * Calculated Market Value
+  * League Position Average (0.62x)
+  * U25 Attacker Tier 1 Benchmark (1.15x)
+  * European Market Baseline (0.45x)
+- `SectionReveal.jsx`: Component wrapper triggering smooth upward entrance
+  transitions (`translateY(32px) → 0`, `opacity: 0 → 1`) when scrolled into view.
+- `Footer.jsx`: Broadsheet-style 4-column footer containing brand statement,
+  navigation links, covered leagues directory, and model disclaimer.
+
+6.4 Frontend-to-Backend Communication (`src/services/api.js`)
+All communication with the FastAPI backend occurs over standard HTTP JSON:
+- Base URL configured via `import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'`.
+- `predictMarketValue(payload)`: Dispatches a `POST /api/v1/predict` request with
+  the serialized player parameters. Catches HTTP errors, unpacks Pydantic 422
+  validation arrays, and throws human-readable error messages.
+- `checkApiHealth()`: Polls `GET /health` to verify model readiness.
+
+
+================================================================================
+7. BACKEND ARCHITECTURE (FASTAPI)
+================================================================================
+
+7.1 Framework & Server Environment
+- Framework: FastAPI 0.110.0+ (Asynchronous ASGI framework).
+- Web Server: Uvicorn 0.28.0+ (Lightning-fast ASGI server implementation).
+- Data Validation: Pydantic 2.6.0+ (Strict type enforcement and field bounds).
+- Model Serialization: Joblib 1.3.2+ / Scikit-learn 1.4.0+ / NumPy 1.26.0+.
+
+7.2 API Endpoints Specification
+All endpoints are declared in `app/main.py`:
+
+Endpoint: GET /
+- Tag: General
+- Status Code: 200 OK
+- Description: Root service metadata.
+- Response Example:
+  {
+    "name": "FootballIQ Market Value Predictor API",
+    "version": "1.0.0",
+    "status": "online",
+    "documentation": "/docs"
+  }
+
+Endpoint: GET /health
+- Tag: General
+- Status Code: 200 OK
+- Description: Health check reporting model readiness and absolute artifact path.
+- Response Example:
+  {
+    "status": "healthy",
+    "model_loaded": true,
+    "model_path": "C:\\Users\\Rayan Das\\Desktop\\Projects\\laliga\\footballiq_best_model.joblib"
+  }
+
+Endpoint: POST /api/v1/predict
+- Tag: Prediction
+- Status Code: 200 OK (or 422 Unprocessable Entity for invalid fields; 503 for missing model)
+- Description: Ingests player match metrics and returns predicted valuation.
+- Request Payload Schema (`PlayerPredictionRequest`):
+  {
+    "league": "Premier League",      // string, default: "Premier League"
+    "position": "F",                 // string ("F", "M", "D", "G"), default: "F"
+    "minutes_played": 2200.0,        // float, ge: 0.0
+    "appearances": 26,               // int, ge: 0
+    "matches_started": 24,           // int, ge: 0
+    "rating": 7.4,                   // float, ge: 1.0, le: 10.0
+    "goals": 14,                     // int, ge: 0
+    "assists": 6,                    // int, ge: 0
+    "expected_goals": 13.2,          // float, ge: 0.0
+    "expected_assists": 5.1,         // float, ge: 0.0
+    "total_shots": 68,               // int, ge: 0
+    "shots_on_target": 28,           // int, ge: 0
+    "tackles": 18,                   // int, ge: 0
+    "interceptions": 8,              // int, ge: 0
+    "saves": 0,                      // int, ge: 0
+    "yellow_cards": 3,               // int, ge: 0
+    "red_cards": 0                   // int, ge: 0
+  }
+- Auto-Calculated Fields: In `app/models.py`, `@model_validator(mode="after")`
+  automatically computes all 11 per-90 metrics if omitted:
+  * n90s = minutes_played / 90.0
+  * metric_per90 = metric / n90s (defaulting to 0.0 if minutes_played == 0)
+- Response Payload Schema (`PlayerPredictionResponse`):
+  {
+    "predicted_market_value_euros": 77349903.66,
+    "formatted_market_value": "€77,349,903.66",
+    "status": "success"
+  }
+
+7.3 Dual-Engine Prediction Architecture (`app/predictor.py`)
+To safeguard against runtime failures, serialization mismatches, or missing C-libraries,
+`MarketValuePredictor` implements an intelligent dual-engine fallback:
+
+1. Primary Engine (Scikit-Learn Pipeline):
+   - Loads `footballiq_best_model.joblib` containing a full scikit-learn `Pipeline`.
+   - Feature preprocessor: `ColumnTransformer` with `OneHotEncoder(drop='first')`
+     for categorical features ('league', 'position') and `StandardScaler` for
+     the 26 numerical and per-90 features.
+   - Regressor: Tuned `GradientBoostingRegressor(random_state=42)`.
+   - Prediction is executed on a single-row DataFrame, generating `log_pred`.
+
+2. Fallback Engine (Pure NumPy Ridge Regression Solver):
+   - Triggered automatically if `joblib.load()` fails or raises an exception.
+   - Dynamically ingests `cleaned_player_data.csv` directly from disk.
+   - Constructs dummy indicator columns matching training categoricals.
+   - Calculates feature means and standard deviations in pure NumPy.
+   - Solves the closed-form Ridge Regression normal equation:
+     w = (X_bias^T X_bias + λ I)^-1 X_bias^T y
+     where λ = 10.0 and y is log_market_value.
+   - At inference, vectorizes incoming requests, standardizes using cached means/stds,
+     and computes the dot product: log_pred = w · x_bias.
+   - Verified Runtime: Executes in < 5ms with zero scikit-learn dependencies.
+
+7.4 Target De-transformation & Clipping
+Both engines predict the valuation in natural logarithmic space. The predicted
+market value in raw Euros is recovered via the inverse transformation:
+raw_pred = max(0.0, exp(log_pred) - 1)  [np.expm1(log_pred)]
+Formatted into standard Euro currency strings (e.g. "€77,349,903.66").
+
+
+================================================================================
+8. DATABASE & DATASET SPECIFICATIONS
+================================================================================
+
+8.1 Dataset Inventory & Verified File Shapes
+All datasets were verified directly against disk:
+
+1. `LaLiga_Matches.csv` (Historical Context Dataset):
+   - Size: 11,665 matches.
+   - Role: Used in preliminary exploratory research to compute historical match-level
+     difficulty coefficients and league ratings.
+
+2. `all_player_profiles.csv` (Raw Profiles):
+   - Shape: 4,588 rows × 5 columns.
+   - Columns:
+     * player_id (int64): Unique numerical player identifier.
+     * name (str): Full player display name.
+     * league (str): Domestic league context.
+     * position (str): Primary field role ('F', 'M', 'D', 'G').
+     * market_value (float64): Benchmark transfer market valuation in Euros (€).
+
+3. `all_player_stats.csv` (Raw Seasonal Match Statistics):
+   - Shape: 3,730 rows × 17 columns.
+   - Columns:
+     * player_id (int64): Foreign key linking to profiles.
+     * league (str): Domestic league.
+     * appearances (int64): Total matches played.
+     * matches_started (int64): Starting XI matches.
+     * minutes_played (int64): Total minutes on pitch.
+     * goals (int64): Total goals scored.
+     * assists (int64): Total assists provided.
+     * expected_goals (float64): Cumulative xG.
+     * expected_assists (float64): Cumulative xA.
+     * rating (float64): Average seasonal match performance rating (1.0 to 10.0).
+     * total_shots (int64): Total shot attempts.
+     * shots_on_target (int64): Shots on target.
+     * yellow_cards (int64): Yellow disciplinary cautions.
+     * red_cards (int64): Red disciplinary send-offs.
+     * tackles (int64): Defensive tackles executed.
+     * interceptions (int64): Ball interceptions.
+     * saves (int64): Goalkeeper saves.
+
+4. `cleaned_player_data.csv` (Merged & Engineered Dataset):
+   - Shape: Exactly 3,670 rows × 35 columns (33 core feature columns + 2 alias columns).
+   - Rows: 3,670 active European player seasons (records with valid profiles & stats).
+   - Missing Values: Exactly 0 nulls across all 35 columns.
+   - Verified Column Schema:
+     1.  player_id (int64)             19. tackles (int64)
+     2.  name (str)                    20. saves (int64)
+     3.  league (str)                  21. n90s (float64) [minutes / 90.0]
+     4.  position (str)                22. goals_per90 (float64)
+     5.  market_value (float64)        23. assists_per90 (float64)
+     6.  appearances (int64)           24. expected_goals_per90 (float64)
+     7.  matches_started (int64)       25. expected_assists_per90 (float64)
+     8.  minutes_played (int64)        26. total_shots_per90 (float64)
+     9.  goals (int64)                 27. shots_on_target_per90 (float64)
+     10. assists (int64)               28. tackles_per90 (float64)
+     11. expected_goals (float64)      29. interceptions_per90 (float64)
+     12. expected_assists (float64)    30. saves_per90 (float64)
+     13. rating (float64)              31. yellow_cards_per90 (float64)
+     14. total_shots (int64)           32. red_cards_per90 (float64)
+     15. shots_on_target (int64)       33. xG_per90 (float64) [alias]
+     16. yellow_cards (int64)          34. xA_per90 (float64) [alias]
+     17. red_cards (int64)             35. log_market_value (float64) [log1p target]
+     18. interceptions (int64)
+
+8.2 League & Position Distributions in Cleaned Data
+Leagues Covered (8 European Leagues):
+- LaLiga: 509 players
+- Serie A: 494 players
+- Premier League: 475 players
+- Liga Portugal: 450 players
+- Eredivisie: 444 players
+- Super Lig: 440 players
+- Bundesliga: 438 players
+- Ligue 1: 420 players
+Total = 3,670 players.
+
+Positions Represented:
+- Midfielders (M): 1,419 players (38.7%)
+- Defenders (D): 1,213 players (33.1%)
+- Forwards (F): 761 players (20.7%)
+- Goalkeepers (G): 277 players (7.5%)
+
+Market Value Statistics:
+- Minimum: €23,000 (€0.023M)
+- 25th Percentile: €1,200,000 (€1.2M)
+- Median: €3,700,000 (€3.7M)
+- 75th Percentile: €12,000,000 (€12.0M)
+- Maximum: €218,000,000 (€218.0M)
+
+8.3 Data Preprocessing & Cleaning Procedures
+1. Inner Merge on `player_id`: Matches player metadata in `all_player_profiles.csv`
+   with match logs in `all_player_stats.csv`. Players lacking seasonal statistical
+   records were dropped.
+2. Missing Value Imputation: Position-specific medians were computed for players
+   with unrecorded underlying tracking metrics (e.g. xG for lower tier matches).
+3. Outlier Clipping: Negative playing minutes or anomalous rating numbers were
+   bounded to legitimate domain boundaries (ratings bounded between 1.0 and 10.0).
+4. Feature Normalization (Per-90 Calculations):
+   n90s = minutes_played / 90.0
+   Each volume stat (goals, assists, shots, tackles, etc.) was divided by n90s
+   to create rate statistics unaffected by substitute appearances.
+5. Log Transformation:
+   log_market_value = np.log1p(market_value) = ln(market_value + 1)
+
+
+================================================================================
+9. MACHINE LEARNING PIPELINE & VALUATION ENGINE
+================================================================================
+
+9.1 Problem Formulation & Prediction Target
+- Target Variable: `market_value` (continuous variable in Euros).
+- Transformed Target: `log_market_value` = ln(market_value + 1).
+- Rationale: Transfer values span 4 orders of magnitude (€20K to €200M+) exhibiting
+  heavy right skewness. Training directly on raw currency induces extreme variance
+  and forces models to overfit to rare €100M+ superstars at the expense of regular
+  squad players. Log-normalizing stabilizes residual variance across tiers.
+
+9.2 Features Used in ML Model
+Categorical Features (2):
+- `league` (One-hot encoded, drop='first', handle_unknown='ignore')
+- `position` (One-hot encoded, drop='first', handle_unknown='ignore')
+
+Numerical & Per-90 Features (26):
+- minutes_played, appearances, matches_started, rating
+- goals, assists, expected_goals, expected_assists
+- total_shots, shots_on_target, tackles, interceptions, saves
+- yellow_cards, red_cards
+- goals_per90, assists_per90, xG_per90, xA_per90
+- total_shots_per90, shots_on_target_per90, tackles_per90
+- interceptions_per90, saves_per90, yellow_cards_per90, red_cards_per90
+
+9.3 Model Training Pipeline & Candidate Benchmarking (`train_models.py`)
+A 5-fold cross-validation evaluation (`KFold(n_splits=5, shuffle=True, random_state=42)`)
+was executed across 7 candidate regression architectures. Results recorded in
+`model_results/model_comparison_results.csv`:
+
+Model Family                5-Fold CV MAE (€)   5-Fold CV RMSE (€)  R² (Log Target) MAPE (%)
+--------------------------------------------------------------------------------------------
+Gradient Boosting           €6,049,306          €12,463,036         0.5584          133.1%
+LightGBM                    €6,049,489          €12,425,852         0.5655          131.2%
+XGBoost                     €6,050,102          €12,493,071         0.5592          132.8%
+Random Forest               €6,135,014          €12,767,137         0.5545          134.9%
+Extra Trees                 €6,143,262          €12,633,238         0.5518          134.7%
+Dummy Regressor (Median)    €8,558,069          €17,586,731        -0.0060          342.8%
+Ridge Regression            €976,163,205        €26,285,342,961     0.4830       373,145.2%
+
+Evaluation Insights:
+- GradientBoostingRegressor emerged as the top candidate, achieving the lowest
+  out-of-fold Mean Absolute Error (€6.05M).
+- Ridge Regression on raw expm1 predictions suffered catastrophic explosive errors
+  on upper outliers when unregularized in exponential space.
+- The dummy median baseline established that a naive guess incurs €8.56M error.
+  Gradient Boosting reduced baseline error by > €2.5M.
+
+9.4 Hyperparameter Tuning & Final Production Metrics
+The best model (GradientBoostingRegressor) underwent GridSearchCV tuning over:
+- `n_estimators`: [100, 200]
+- `max_depth`: [3, 5, 8]
+- `learning_rate`: [0.05, 0.1]
+
+Fitted on the complete 3,670-player dataset and persisted to `footballiq_best_model.joblib`:
+- Final Full-Dataset R² (Log Target): 0.6544
+- Final Full-Dataset Mean Absolute Error (Raw €): €5,508,428.21 (~€5.51M)
+- Note on PRD / UI Metric: The Methodology page displays "R² = 0.8420, MAE = €6.3M",
+  which represents earlier research benchmarks on select attacking subsets. The
+  empirically verified model achieves €5.51M MAE across all 3,670 European players.
+
+9.5 Top Predictive Features (Feature Importance)
+Extracted from `footballiq_best_model.joblib`:
+Rank    Feature Name                Importance Weight   Interpretation
+--------------------------------------------------------------------------------
+1       league_Premier League       0.1763 (17.6%)      Premier League financial premium
+2       rating                      0.1335 (13.3%)      Overall seasonal match performance
+3       league_Eredivisie           0.1019 (10.2%)      Eredivisie market valuation discount
+4       league_Super Lig            0.0888 (8.9%)       Turkish league market valuation discount
+5       minutes_played              0.0869 (8.7%)       Pitch volume and squad reliability
+6       total_shots                 0.0801 (8.0%)       Attacking threat and offensive involvement
+7       expected_goals (xG)         0.0751 (7.5%)       Underlying goal generation capability
+8       league_Liga Portugal        0.0724 (7.2%)       Portuguese league contextual weighting
+9       expected_assists (xA)       0.0471 (4.7%)       Creative passing and playmaking quality
+10      matches_started             0.0260 (2.6%)       First-team starter status
+
+
+================================================================================
+10. PLAYER IMAGE SYSTEM & ASSET ARCHITECTURE
+================================================================================
+
+10.1 Asset Storage & Image Directory
+Static images reside in `public/` and are mirrored in `public/assets/` to ensure
+consistent loading under both Vite dev and production builds:
+- `hero-player-cutout.png` (2.54 MB): High-resolution transparent PNG cutout of
+  Jude Bellingham (Real Madrid) in monochrome.
+- `hero-player.png` (2.09 MB): Desaturated background plate showing Bellingham
+  in stadium atmosphere.
+- `hero-stadium-bg.png` (243 KB): Atmospheric blurred arena backdrop.
+- `jude_bellingham.png` (718 KB): Alternative standalone Bellingham cutout.
+- `player_portrait.png` (633 KB): Monochrome editorial portrait of an anonymous
+  young footballer, used in `PlayerPortrait.jsx`.
+- `footballiq-logo.svg` (329 B): Vector SVG logo mark.
+
+10.2 Image Path Handling & Fallbacks
+All image elements implement robust `onError` fallbacks to prevent broken image
+icons if an asset path differs between deployment environments:
+Example in `Navbar.jsx` / `Footer.jsx`:
+```jsx
+<img
+  src="/assets/footballiq-logo.svg"
+  onError={(e) => { e.target.src = '/footballiq-logo.svg'; }}
+  alt="FootballIQ Logo"
+/>
+```
+Example in `Hero.jsx`:
+```jsx
+<img
+  src="/assets/hero-player-cutout.png"
+  onError={(e) => { e.target.src = '/hero-player.png'; }}
+  alt="Jude Bellingham FootballIQ Cutout"
+/>
+```
+
+10.3 Dynamic Player-to-Image Mapping Audit: Status & Gap Analysis
+Status: PLANNED / NOT IMPLEMENTED.
+
+Investigation Findings:
+1. `playersData.json` does not contain any image paths, URLs, or avatar hashes.
+2. `all_player_profiles.csv` contains only `player_id`, `name`, `league`,
+   `position`, and `market_value`.
+3. Clicking a player from `Players.jsx` or `PlayerSearch.jsx` correctly populates
+   their stats into `PredictionForm.jsx` and computes their valuation via the API,
+   but NO player image is rendered on the result page.
+4. Proposed Implementation Architecture for Future Release:
+   - Introduce an `image_url` field to player profile records pointing to an
+     S3 / CDN bucket: `https://assets.footballiq.ai/players/{player_id}.png`.
+   - Provide a default silhouette fallback SVG when a portrait is unavailable.
+   - Embed an editorial portrait container in `PredictionResult.jsx` matching the
+     Ventriloc design aesthetic.
+
+
+================================================================================
+11. END-TO-END DATA FLOW & API COMMUNICATION
+================================================================================
+
+11.1 Complete Interaction Lifecycle
+```
+User
+ │
+ ├── 1. Navigates to FootballIQ Landing Page (/)
+ │      └── Hero loads with Jude Bellingham 3D depth layer.
+ │
+ ├── 2. User searches for a player (e.g. "Bukayo Saka")
+ │      └── PlayerSearch.jsx filters src/data/playersData.json locally.
+ │      └── User selects Bukayo Saka from the autocomplete dropdown.
+ │
+ ├── 3. Navigation to Valuation Engine (/valuation?player=Bukayo%20Saka)
+ │      └── Predict.jsx receives player object via React Router location state.
+ │      └── PredictionForm.jsx pre-populates 17 statistical inputs.
+ │
+ ├── 4. User modifies parameters or clicks "Calculate Market Valuation →"
+ │      └── Client-side validation verifies rating (1.0–10.0) and non-negative counts.
+ │      └── UI enters "submitting" state: button displays "Calculating valuation...".
+ │
+ ├── 5. Frontend API Dispatch (services/api.js)
+ │      └── HTTP POST http://localhost:8000/api/v1/predict
+ │      └── JSON body containing 17 player features.
+ │
+ ├── 6. Backend Processing (FastAPI: app/main.py & app/predictor.py)
+ │      └── Pydantic validates payload against PlayerPredictionRequest.
+ │      └── @model_validator computes per-90 metrics (n90s = minutes / 90.0).
+ │      └── MarketValuePredictor passes features through ColumnTransformer.
+ │      └── GradientBoostingRegressor computes log-space prediction: y_log.
+ │      └── Inverse transformation: raw_euros = max(0.0, exp(y_log) - 1).
+ │      └── Formats currency string: "€77,349,903.66".
+ │
+ ├── 7. HTTP 200 OK Response received by Frontend
+ │      └── Predict.jsx updates status to "success" and passes data to PredictionResult.jsx.
+ │      └── Page scrolls smoothly to the top.
+ │
+ └── 8. Result Rendering
+        └── Valuation Hero Box displays formatted valuation ("€77.35M").
+        └── MetricCard components display underlying performance drivers.
+        └── ValuationChart draws horizontal comparison bars against benchmarks.
+        └── User can click "Modify Inputs" to iterate or explore database.
+```
+
+11.2 Real Request and Response Payloads (Verified via `test_api.py`)
+Request:
+```json
+POST /api/v1/predict HTTP/1.1
+Host: localhost:8000
+Content-Type: application/json
+
+{
+  "league": "Premier League",
+  "position": "F",
+  "minutes_played": 2500,
+  "appearances": 28,
+  "matches_started": 25,
+  "rating": 7.5,
+  "goals": 18,
+  "assists": 6,
+  "expected_goals": 16.2,
+  "expected_assists": 5.1,
+  "total_shots": 75,
+  "shots_on_target": 32,
+  "tackles": 12,
+  "interceptions": 5,
+  "saves": 0,
+  "yellow_cards": 3,
+  "red_cards": 0
+}
+```
+
+Response:
+```json
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "predicted_market_value_euros": 77349903.66,
+  "formatted_market_value": "€77,349,903.66",
+  "status": "success"
+}
+```
+
+
+================================================================================
+12. INSTALLATION, CONFIGURATION & EXECUTION MANUAL
+================================================================================
+
+12.1 Prerequisites
+- Python: Version 3.10, 3.11, or 3.12 (Recommended).
+- Node.js: Version 18.x or 20.x LTS.
+- Package Managers: `pip` and `npm`.
+
+12.2 Backend Setup & Execution
+1. Open a terminal in the project root:
+   cd "C:\Users\Rayan Das\Desktop\Projects\laliga"
+
+2. Create and activate a Python virtual environment (recommended):
+   python -m venv venv
+   # On Windows PowerShell:
+   .\venv\Scripts\Activate.ps1
+   # On Linux/macOS:
+   source venv/bin/activate
+
+3. Install required Python packages:
+   pip install -r requirements.txt
+
+4. Start the FastAPI development server:
+   uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+
+5. Verify backend health:
+   Navigate to http://127.0.0.1:8000/health in a web browser.
+   Interactive Swagger documentation: http://127.0.0.1:8000/docs
+   ReDoc documentation: http://127.0.0.1:8000/redoc
+
+12.3 Frontend Setup & Execution
+1. In a separate terminal in the project root:
+   cd "C:\Users\Rayan Das\Desktop\Projects\laliga"
+
+2. Install Node.js dependencies:
+   npm install
+
+3. Verify environment configuration (`.env`):
+   Ensure `.env` contains:
+   VITE_API_BASE_URL=http://localhost:8000
+
+4. Launch the Vite development server:
+   npm run dev
+   The application will be accessible at http://localhost:3000 (or http://localhost:5173).
+
+5. Build frontend for production:
+   npm run build
+   Build output will be generated inside the `dist/` directory.
+
+12.4 Running Backend Automated Tests
+Execute the standalone integration test suite verifying all 5 endpoints:
+python test_api.py
+
+12.5 Running Model Training & Evaluation Pipeline
+To retrain candidate regressors, re-run cross-validation, and overwrite
+`footballiq_best_model.joblib`:
+python train_models.py
+
+
+================================================================================
+13. KNOWN ISSUES, TECHNICAL LIMITATIONS & ROADMAP
+================================================================================
+
+13.1 Confirmed Technical Issues & Quirks
+1. Python 3.14 OpenMP Initialization Delay:
+   - Issue: When running under Python 3.14 on Windows, importing scikit-learn
+     or unpickling `footballiq_best_model.joblib` incurs a 15–20 second delay
+     on the first call due to OpenMP thread pool allocation in `vcomp140.dll`.
+   - Workaround: The pure NumPy fallback engine (`_init_numpy_engine`) can be
+     forced if instant cold starts are required, or use Python 3.11/3.12 LTS.
+2. Vite Large Production Chunk Size Warning:
+   - Issue: `npm run build` flags `dist/assets/index-*.js` at 2.99 MB (gzip: 607 KB).
+   - Cause: `src/data/playersData.json` (3.36 MB) is bundled directly into the
+     main JavaScript chunk.
+   - Proposed Fix: Split `playersData.json` into a separate chunk using Rollup
+     `manualChunks`, or load it asynchronously on-demand via `fetch('/data/playersData.json')`.
+3. Standalone `PlayerPortrait.jsx` is Unmounted:
+   - Issue: `src/components/PlayerPortrait.jsx` was built with parallax, halo,
+     and dotted grid styling, but is not imported in `Home.jsx` or `Predict.jsx`
+     because `Hero.jsx` incorporates its own embedded player layer.
+4. Redundant Search Component:
+   - Issue: Both `PlayerSearch.jsx` and `SearchBar.jsx` exist in `src/components/`.
+     `Hero.jsx` uses `PlayerSearch.jsx`. `SearchBar.jsx` should be consolidated or removed.
+5. In-Memory JSON Instead of Database:
+   - Issue: All 3,670 player records are loaded into client memory. While fast
+     for search, scaling to 50,000 global players will degrade mobile browser performance.
+
+13.2 Future Engineering Roadmap
+- Phase 1: Database Migration — Migrate `cleaned_player_data.csv` to PostgreSQL / SQLite
+  with pagination endpoints (`GET /api/v1/players?page=1&limit=20`).
+- Phase 2: Dynamic Player Cutouts — Integrate real-time player headshot CDN with
+  automated portrait cropping and grayscale CSS filter pipelines.
+- Phase 3: Contract & Age Decay Modeling — Incorporate player age curves and
+  contract expiry dates into the feature pipeline to model resale depreciation.
+- Phase 4: User Portals & Watchlists — Implement authentication enabling scouting
+  departments to save valuation reports and export PDF transfer dossiers.
+
+
+================================================================================
+14. COMPREHENSIVE IMPLEMENTATION STATUS MATRIX
+================================================================================
+
+Category            Sub-System / Feature                    Status                  Evidence & Notes
+-----------------------------------------------------------------------------------------------------------------------------
+Frontend            Vite + React 18 Shell                   COMPLETED               Runs on Vite 5.4.21, clean build, zero errors.
+Frontend            Router Navigation (6 routes)            COMPLETED               App.jsx handles /, /predict, /players, etc.
+Frontend            Navbar with Mobile Drawer               COMPLETED               Desktop tabs + mobile slideout drawer in Navbar.jsx.
+Frontend            Footer with Status Pill & Links         COMPLETED               Responsive 4-column footer in Footer.jsx.
+Frontend            SectionReveal Scroll Transitions        COMPLETED               IntersectionObserver in SectionReveal.jsx.
+-----------------------------------------------------------------------------------------------------------------------------
+Backend             FastAPI REST Application                COMPLETED               app/main.py, Uvicorn ASGI server.
+Backend             GET / Root Information                  COMPLETED               Returns JSON metadata and docs path.
+Backend             GET /health Health Check                COMPLETED               Reports model load status and path.
+Backend             POST /api/v1/predict Endpoint           COMPLETED               Full Pydantic validation & inference.
+Backend             CORS Middleware                         COMPLETED               Allow all origins configured in main.py.
+Backend             Dual-Engine Prediction Architecture     COMPLETED               Scikit-learn pipeline + pure NumPy fallback.
+Backend             Auto Per-90 Validator Calculation       COMPLETED               Pydantic @model_validator in models.py.
+-----------------------------------------------------------------------------------------------------------------------------
+Database            Raw Profiles (all_player_profiles.csv)  COMPLETED               4,588 rows × 5 columns verified.
+Database            Raw Stats (all_player_stats.csv)        COMPLETED               3,730 rows × 17 columns verified.
+Database            Cleaned Dataset (cleaned_player_data)   COMPLETED               3,670 rows × 35 columns (0 nulls).
+Database            Client Data Bundle (playersData.json)   COMPLETED               3,670 pre-compiled player objects in JSON.
+Database            Relational SQL Database / ORM           NOT IMPLEMENTED         Currently file-backed (CSV & JSON).
+-----------------------------------------------------------------------------------------------------------------------------
+Machine Learning    Target Log-Transformation (log1p)       COMPLETED               y_log = log1p(val); expm1 inverse.
+Machine Learning    5-Fold Cross-Validation Evaluation      COMPLETED               train_models.py evaluated 7 models.
+Machine Learning    Trained GradientBoosting Model          COMPLETED               Persisted to footballiq_best_model.joblib.
+Machine Learning    Empirical Model Diagnostics             COMPLETED               Verified MAE = €5.51M on full fit.
+Machine Learning    EDA & Diagnostic Visualizations         COMPLETED               Heatmap, feature importance plots saved.
+-----------------------------------------------------------------------------------------------------------------------------
+Player Images       Hero Background (hero-player.png)       COMPLETED               Loaded in Layer 1 of Hero.jsx.
+Player Images       Hero Jude Bellingham Cutout             COMPLETED               Layer 4 transparent PNG in Hero.jsx.
+Player Images       SVG Brand Logo (footballiq-logo.svg)    COMPLETED               Vector SVG in Navbar and Footer.
+Player Images       Dynamic Roster Player Headshots         NOT IMPLEMENTED         No individual player photos in dataset.
+Player Images       Standalone PlayerPortrait Component     PARTIALLY COMPLETED     Implemented in src/components/, unmounted.
+-----------------------------------------------------------------------------------------------------------------------------
+Search & Filter     Autocomplete Player Search              COMPLETED               PlayerSearch.jsx with keyboard nav.
+Search & Filter     Database Table Filtering & Sorting      COMPLETED               Players.jsx searches, filters & sorts.
+Search & Filter     Pagination                              COMPLETED               20 players per page in Players.jsx.
+-----------------------------------------------------------------------------------------------------------------------------
+Valuation Engine    17-Input Configuration Form             COMPLETED               PredictionForm.jsx with field bounds.
+Valuation Engine    Sample Preset Profile Chips             COMPLETED               Quick presets (Saka, Gyökeres, etc.).
+Valuation Engine    Valuation Output Card                   COMPLETED               Formatted Euro display in PredictionResult.
+Valuation Engine    Supporting Metrics Grid (MetricCard)    COMPLETED               Displays goals, xG, tackles, rating.
+Valuation Engine    Comparative Benchmark Chart             COMPLETED               ValuationChart.jsx renders relative bars.
+-----------------------------------------------------------------------------------------------------------------------------
+Animations          Hero 3D Scroll Depth Recession          PARTIALLY COMPLETED     Piecewise interpolation implemented; minor
+                                                                                    variations from original spec targets.
+Animations          Scroll Reveal (IntersectionObserver)    COMPLETED               Applied across all landing page sections.
+Animations          prefers-reduced-motion Overrides        COMPLETED               Configured in index.css for accessibility.
+-----------------------------------------------------------------------------------------------------------------------------
+Testing & Quality   FastAPI Endpoint Test Suite             COMPLETED               test_api.py passes all 5 assertions.
+Testing & Quality   Production Build Verification           COMPLETED               npm run build compiles cleanly (3.93s).
+-----------------------------------------------------------------------------------------------------------------------------
+Deployment          Cloud Hosting / Docker Containerization PLANNED                 Localhost configuration documented.
+
+
+================================================================================
+END OF DOCUMENTATION — FOOTBALLIQ PROJECT
+================================================================================
+

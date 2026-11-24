@@ -1,0 +1,53 @@
+:root {
+  /* Color Palette */
+  --color-graphite: #202020;
+  --color-canvas-white: #ffffff;
+  --color-ash: #efefef;
+  --color-fog: #f5f5f5;
+  --color-ivory: #ebe6dd;
+  --color-steel: #4d4d4d;
+  --color-slate: #828282;
+  --color-mist: #e8e8e8;
+  --color-ember-orange: #ff682c;
+  --color-brass: #816729;
+
+  /* Typography */
+  --font-display: 'Inter Tight', 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Display typography rules */
+  --display-size: 66px;
+  --display-size-tablet: 48px;
+  --display-size-mobile: 36px;
+  --display-line-height: 0.91;
+  --display-tracking: -1.32px;
+  --display-weight: 400;
+
+  /* Radius system */
+  --radius-button: 0px;
+  --radius-card: 8px;
+  --radius-data-card: 20px;
+  --radius-tag: 20px;
+  --radius-pill: 200px;
+  --radius-asymmetric: 6px 0 0 0;
+
+  /* Spacing Scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+  --space-9: 60px;
+  --space-10: 80px;
+  --space-11: 140px;
+
+  /* Container bounds */
+  --max-width: 1200px;
+  --header-height: 72px;
+
+  /* Motion */
+  --transition-editorial: transform 800ms cubic-bezier(0.22, 1, 0.36, 1), opacity 800ms cubic-bezier(0.22, 1, 0.36, 1);
+}

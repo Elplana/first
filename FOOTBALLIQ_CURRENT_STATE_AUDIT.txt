@@ -1,0 +1,556 @@
+================================================================================
+FOOTBALLIQ — COMPREHENSIVE CURRENT-STATE TECHNICAL AUDIT & PROJECT INVENTORY
+================================================================================
+Audit Mode:       Complete Read-Only Technical Inspection
+Auditor Roles:    Senior Full-Stack Software Engineer, Machine Learning Engineer,
+                  QA Engineer, Technical Project Auditor
+Date of Audit:    November 13, 2026
+Operating System: Windows (PowerShell)
+Project Path:     c:\Users\Rayan Das\Desktop\Projects\FOOTBALL IQ
+Execution State:  READ-ONLY AUDIT. Zero application source files modified.
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+1.  Executive Summary
+2.  Complete Project Structure
+3.  What FootballIQ Currently Does
+4.  Every Implemented Feature (Working)
+5.  Every Partially Implemented Feature
+6.  Every Broken Feature
+7.  Every Feature Not Implemented
+8.  Frontend Architecture & Component Audit
+9.  Backend Architecture & Endpoint Audit
+10. API Details & Request/Response Schemas
+11. Dataset & Data Engineering Audit
+12. Machine Learning Pipeline & Model Evaluation
+13. Hero Design & Visual Depth Audit
+14. Testing, QA, and Build Results
+15. Known Bugs & Technical Debt
+16. Security & Configuration Findings
+17. Prioritized Remaining Tasks (P0 to P4)
+18. Exact Commands to Run Frontend & Backend
+19. Recommended Development Roadmap
+20. Final Sign-off & Audit Conclusions
+
+================================================================================
+1. EXECUTIVE SUMMARY
+================================================================================
+FootballIQ is a full-stack, AI-powered European football player market valuation
+platform designed to ingest player performance metrics and output objective,
+machine learning-driven fair market valuations in Euros (€).
+
+Overall Operational Status:
+- Core End-to-End Pipeline: PARTIALLY WORKING / HIGH FUNCTIONALITY. The core
+  inference loop works end-to-end: the frontend form validates input, sends an
+  HTTP POST request to FastAPI at /api/v1/predict, the backend loads the serialized
+  scikit-learn pipeline (footballiq_best_model.joblib), transforms features,
+  predicts log valuation, converts back to Euros via np.expm1, and returns the
+  valuation payload to the frontend.
+- Frontend Readiness: 80% Complete. The Vite + React single-page application
+  compiles cleanly (npm run build succeeds in 2.17s). The /, /predict, /players,
+  and /methodology routes render without runtime errors.
+- Backend Readiness: 90% Complete. FastAPI service is lean, cleanly architected
+  with Pydantic v2 schemas and an automated per-90 metrics validator. Automated
+  test suite (test_api.py) runs with 5/5 passing tests (100% pass rate).
+- ML / Pipeline Status: 85% Complete. A production GradientBoostingRegressor
+  model is serialized in footballiq_best_model.joblib achieving €6.05M Mean
+  Absolute Error (MAE) and 0.5584 R2 on log target in 5-fold cross-validation.
+  Cleaned dataset has 3,670 records and 0 missing values.
+- Critical Blockers & Defects:
+  1. Hero Double-Player Rendering: In Hero.jsx, Layer 1 renders /hero-player.png
+     (which contains Jude Bellingham on the pitch) while Layer 4 renders
+     hero-player-cutout.png. This creates a visible ghost/duplicate player.
+  2. Hero Stacking Collision: The player cutout layer has z-index: 4, positioned
+     at top: 180px, placing the cutout directly over the centered headline
+     (z-index: 3) and overlapping the search bar.
+  3. CORS Security Risk: app/main.py configures allow_origins=["*"] with
+     allow_credentials=True, which is rejected by modern browsers for credentialed
+     requests and violates API security standards.
+  4. Client-Side Heavy Bundle (3.36 MB JSON): playersData.json is bundled entirely
+     into the frontend client build, producing a 2.99 MB JavaScript chunk and
+     bypassing backend database architecture.
+  5. Missing Scripts & Legacy Paths: Referenced scripts validate_data.py and
+     run_eda_cleaning.py are absent from the repository. train_models.py contains
+     hardcoded legacy path r"c:\Users\Rayan Das\Desktop\laliga".
+
+================================================================================
+2. COMPLETE PROJECT STRUCTURE
+================================================================================
+Below is the verified, exact directory tree of the FootballIQ project
+(excluding node_modules, .git, __pycache__, and dist build outputs):
+
+c:\Users\Rayan Das\Desktop\Projects\FOOTBALL IQ\
+├── .env                                       # Frontend environment config (VITE_API_BASE_URL)
+├── DESIGN (2).md                              # Architectural design brief & UI specification
+├── FootballIQ_Antigravity_Prompt.md           # LLM agent instructions & design principles
+├── FootballIQ_Final_Design.md                 # Design tokens, typography & interaction specs
+├── FootballIQ_Flow.md                         # Route navigation flows & wireframe diagrams
+├── FootballIQ_Project_Documentation.txt       # Historical project logs & feature specifications
+├── README.md                                  # Backend API documentation & run instructions
+├── all_player_profiles.csv                    # Raw dataset: 4,588 player profile records
+├── all_player_stats.csv                       # Raw dataset: 3,730 player season match statistics
+├── cleaned_player_data.csv                    # Engineered dataset: 3,670 cleaned player rows (35 cols)
+├── footballiq_best_model.joblib               # Serialized ML pipeline (GradientBoostingRegressor)
+├── index.html                                 # Single-page application HTML entrypoint
+├── package-lock.json                          # Locked NPM dependency graph
+├── package.json                               # NPM package definitions, scripts, dependencies
+├── postcss.config.js                          # PostCSS config (TailwindCSS, Autoprefixer)
+├── requirements.txt                           # Python dependencies for backend & ML
+├── tailwind.config.js                         # TailwindCSS theme extensions & design tokens
+├── test_api.py                                # Backend test suite using FastAPI TestClient
+├── train_models.py                            # Model training, CV evaluation & persistence script
+├── vite.config.js                             # Vite bundler configuration (port 3000)
+├── app/                                       # FastAPI Backend Application
+│   ├── __init__.py                            # Python package initializer
+│   ├── main.py                                # FastAPI app, endpoints, CORS & error handlers
+│   ├── models.py                              # Pydantic v2 request & response schemas
+│   └── predictor.py                           # ML Model predictor service & pure NumPy fallback
+├── eda_plots/                                 # Exploratory Data Analysis Visualizations
+│   ├── FootballIQ_Antigravity_Prompt.md       # Backup copy of prompt file
+│   ├── correlation_heatmap.png                # Heatmap of performance feature correlations
+│   ├── market_value_by_league.png             # League market value boxplots
+│   ├── market_value_by_position.png           # Position market value boxplots
+│   ├── market_value_distribution.png          # Raw vs log market value distribution
+│   └── outliers_minutes_vs_value.png          # Scatterplot of playing time vs market value
+├── model_results/                             # ML Evaluation Artifacts & Plots
+│   ├── feature_importance.png                 # Top 20 feature importances bar chart
+│   ├── model_comparison_mae.png               # Cross-validation MAE comparison chart
+│   ├── model_comparison_results.csv           # Quantitative CV metrics table (MAE, RMSE, R2, MAPE)
+│   └── predicted_vs_actual.png                # Actual vs predicted valuation scatter plot
+├── public/                                    # Static Client Assets
+│   ├── footballiq-logo.svg                    # Brand vector logo
+│   ├── hero-player-cutout.png                 # RGBA cutout of Jude Bellingham (1672x941)
+│   ├── hero-player.png                        # RGB Bellingham on stadium pitch (1672x941)
+│   ├── hero-stadium-bg.png                    # RGB stadium background without foreground player
+│   ├── jude_bellingham.png                    # Square player portrait (1024x1024)
+│   ├── player_portrait.png                    # Square player portrait (1024x1024)
+│   └── assets/                                # Duplicate fallback asset directory
+│       ├── footballiq-logo.svg
+│       ├── hero-player-cutout.png
+│       ├── hero-player.png
+│       └── hero-stadium-bg.png
+└── src/                                       # Frontend Source Code
+    ├── App.jsx                                # Root router, route definitions & scroll-to-top
+    ├── index.css                              # Tailwind base, design token variables & animations
+    ├── main.jsx                               # React DOM client entrypoint
+    ├── components/                            # UI Components
+    │   ├── Footer.css                         # Footer layout & responsive styles
+    │   ├── Footer.jsx                         # Global footer with links & status pill
+    │   ├── Hero.css                           # 5-layer hero system & scroll depth styles
+    │   ├── Hero.jsx                           # Cinematic hero section with Bellingham animation
+    │   ├── MetricCard.css                     # Key-value metric card styles
+    │   ├── MetricCard.jsx                     # Metric card component with accent indicator
+    │   ├── Navbar.css                         # Navbar layout & mobile drawer styles
+    │   ├── Navbar.jsx                         # Top header with navigation links & mobile menu
+    │   ├── PlayerPortrait.css                 # Legacy portrait card styles
+    │   ├── PlayerPortrait.jsx                 # Legacy/orphaned side-by-side portrait card
+    │   ├── PlayerSearch.jsx                   # Hero search bar with live autocomplete dropdown
+    │   ├── PredictionForm.css                 # 4-section performance input form styles
+    │   ├── PredictionForm.jsx                 # Valuation input form with presets & validation
+    │   ├── PredictionResult.css               # Valuation result banner & metrics grid styles
+    │   ├── PredictionResult.jsx               # Valuation display, supporting metrics & chart
+    │   ├── SearchBar.css                      # Legacy search bar styles
+    │   ├── SearchBar.jsx                      # Legacy/orphaned search bar component
+    │   ├── SectionReveal.jsx                  # IntersectionObserver scroll reveal wrapper
+    │   ├── ValuationChart.css                 # Benchmark comparison horizontal bars styles
+    │   └── ValuationChart.jsx                 # Valuation relative benchmark comparison bars
+    ├── data/                                  # Static Client Data
+    │   └── playersData.json                   # 3,670 player profiles & stats (3.36 MB JSON)
+    ├── hooks/                                 # Custom React Hooks
+    │   └── useScrollReveal.js                 # IntersectionObserver hook for scroll animations
+    ├── pages/                                 # Routed Page Views
+    │   ├── Home.css                           # Landing page editorial grid styles
+    │   ├── Home.jsx                           # Landing page (Hero, Process, Featured, CTA)
+    │   ├── Methodology.css                    # Methodology 4-column documentation styles
+    │   ├── Methodology.jsx                    # Architecture & metrics technical documentation
+    │   ├── Players.css                        # Database table, filters & pagination styles
+    │   ├── Players.jsx                        # 3,670-player table with search, filter, sort
+    │   ├── Predict.css                        # Valuation engine container & error styles
+    │   ├── Predict.jsx                        # Valuation engine container & submission state
+    │   └── Result.jsx                         # Standalone result page view
+    ├── services/                              # API Client Services
+    │   └── api.js                             # Fetch wrapper for POST /api/v1/predict & health
+    └── styles/                                # Design Tokens
+        └── tokens.css                         # Custom properties (typography, colors, spacing)
+
+================================================================================
+3. WHAT FOOTBALLIQ CURRENTLY DOES
+================================================================================
+1. User Landing (/): Displays an editorial monochrome homepage featuring Jude
+   Bellingham in a 5-layer hero section with a headline, live player search bar,
+   a 3-step valuation process breakdown, 4 sample player cards with instant
+   "Evaluate" shortcuts, and links to methodology.
+2. Player Search & Autocomplete: Typing any player's name (e.g. Bellingham,
+   Saka, Gyökeres) in the hero search bar queries the client-side database
+   (playersData.json) in real time, displaying up to 6 suggestions with league,
+   position, and market valuation badge. Pressing Enter or clicking a player
+   routes to /valuation?player=... with all 17 performance metrics prefilled.
+3. Player Database Exploration (/players): Users can browse all 3,670 European
+   player profiles across 8 top leagues. Users can filter by search term, league,
+   and position; sort ascending or descending by Name, League, Position, Market
+   Value, or Rating; and paginate 20 rows per page. Clicking "Evaluate" on any row
+   pre-populates that player into the valuation engine.
+4. Valuation Engine Configuration (/predict): Users can adjust 17 performance
+   metrics across 4 logical categories. Users can also select sample presets (Saka,
+   Gyökeres, Odegaard, Rice, Eze).
+5. Inference Execution: Clicking "Calculate Market Valuation" validates bounds
+   and sends an HTTP POST request to http://localhost:8000/api/v1/predict. The
+   backend computes normalized per-90 metrics, transforms features via OneHotEncoder
+   and StandardScaler, predicts log valuation via GradientBoostingRegressor,
+   exponentiates via np.expm1, and returns the raw and formatted Euro market valuation.
+6. Result Presentation: Upon API response, /predict replaces the form with
+   PredictionResult, rendering a valuation hero banner, 6 supporting metric cards,
+   and a benchmark comparison chart.
+
+================================================================================
+4. EVERY IMPLEMENTED FEATURE (WORKING)
+================================================================================
+- FastAPI Root & Health Endpoints: GET / and GET /health return HTTP 200.
+- Model Inference Endpoint: POST /api/v1/predict returns realistic predictions
+  (PL Forward €77.35M, LaLiga Midfielder €65.68M).
+- Pydantic Validation & Per-90 Calculation: Auto-computes 11 per-90 fields; rejects
+  invalid ratings (>10.0) with HTTP 422.
+- Joblib Model Loading: footballiq_best_model.joblib loads cleanly in Python 3.14.8.
+- Pure NumPy Ridge Fallback Predictor: Implemented via np.linalg.solve as bypass.
+- Client Routing: React Router v6 cleanly routes /, /predict, /valuation, /result,
+  /players, /methodology.
+- Hero Autocomplete Search: Real-time keyboard-navigable autocomplete filtering
+  3,670 players; pre-populates form upon selection.
+- Player Database Browser: Client-side table with search, sorting, filtering, and
+  pagination across 3,670 players.
+- Valuation Form Prefilling: Correctly populates from URL params (?player=...),
+  route state, and sample profile chips.
+- Frontend Production Build: Vite builds dist/ in 2.17 seconds with 0 syntax errors.
+- Intersection Scroll Reveals: Fade-in transitions activate smoothly on scroll.
+
+================================================================================
+5. EVERY PARTIALLY IMPLEMENTED FEATURE
+================================================================================
+- Prediction Result Routing (/result): /predict renders PredictionResult in-place
+  conditionally instead of navigating to /result. Direct visits to /result have
+  no active state and display an empty message.
+- Relative Benchmark Valuation Chart: ValuationChart.jsx computes comparisons
+  using hardcoded multipliers (* 0.62, * 1.15, * 0.45) rather than real dataset
+  cohort distributions. Goalkeepers and defenders display "U25 Attacker Tier 1".
+- Player Database League Filters: Dropdown only lists 6 leagues + All. Liga
+  Portugal (450 players) and Super Lig (440 players) are omitted from the select.
+- Hero Bellingham Scroll Merging: Bellingham cutout recedes, blurs, and fades on
+  scroll, but background does not counter-parallax and cutout sits at z-index: 4
+  above the headline text.
+- Model Evaluation Documentation: Methodology page displays hardcoded metrics
+  (R2 0.8420, MAE €6.3M) instead of true CV metrics (R2 0.5584, MAE €6.05M).
+
+================================================================================
+6. EVERY BROKEN FEATURE
+================================================================================
+- NPM Lint Command (npm run lint): package.json defines "lint": "eslint .", but
+  eslint is not installed in devDependencies. Command fails immediately.
+- Model Retraining Script Paths: train_models.py hardcodes legacy Windows path
+  r"c:\Users\Rayan Das\Desktop\laliga", causing FileNotFoundError when executed.
+- Hero Background Image Selection: Hero.jsx Layer 1 references /hero-player.png
+  instead of hero-stadium-bg.png, creating a duplicate ghost player behind the cutout.
+- Static Backend Status Indicator: Footer.jsx displays hardcoded text
+  "FastAPI Backend Online • Model v1.0" even when backend server is shut down.
+
+================================================================================
+7. EVERY FEATURE NOT IMPLEMENTED (OMITTED / ABSENT)
+================================================================================
+- Backend Player Database API (GET /api/v1/players): Not implemented. Frontend
+  loads the entire 3.36 MB JSON dataset into browser memory.
+- Individualized Feature Contribution (SHAP): No localized feature contribution
+  weights (+€X for goals, -€Y for cards) are computed or returned.
+- Player vs Player Comparison View: Spec wireframes mention player comparison;
+  no comparison route or UI exists.
+- Prediction Confidence Intervals: API outputs single point estimate; confidence
+  bounds or percentiles are not returned.
+- Data Validation Script (validate_data.py): Does not exist in repository.
+- EDA & Cleaning Script (run_eda_cleaning.py): Does not exist in repository.
+- LaLiga Matches Dataset (LaLiga_Matches.csv): Does not exist in repository.
+- Git Repository & .gitignore: Project is not initialized as a git repo; no
+  .gitignore exists.
+
+================================================================================
+8. FRONTEND ARCHITECTURE & COMPONENT AUDIT
+================================================================================
+Framework: React 18.3.1 + React Router DOM 6.26.2 + Vite 5.4.21
+Styling: TailwindCSS 3.4.17 + PostCSS + Custom CSS Design Tokens
+
+Page Views:
+- /: Home.jsx (Hero, Process, Featured Players, Methodology CTA)
+- /predict: Predict.jsx (Predictor Form & in-place Result View)
+- /valuation: Predict.jsx (Alias for query parameter prefilling)
+- /result: Result.jsx (Standalone result view; requires state)
+- /players: Players.jsx (Database table with search, filter, pagination)
+- /methodology: Methodology.jsx (Technical documentation)
+
+Orphaned Components:
+- SearchBar.jsx / SearchBar.css (Superseded by PlayerSearch.jsx)
+- PlayerPortrait.jsx / PlayerPortrait.css (Legacy hero portrait component)
+
+Bundle Performance:
+- Main bundle size is 2,991.98 kB due to static inclusion of playersData.json (3.36 MB).
+
+================================================================================
+9. BACKEND ARCHITECTURE & ENDPOINT AUDIT
+================================================================================
+Framework: FastAPI 0.139.0 + Uvicorn 0.50.2 + Pydantic 2.13.4
+Entry Point: app/main.py
+
+Endpoints:
+- GET /: Returns API status and docs pointer.
+- GET /health: Returns healthy/degraded status, model_loaded boolean, and model path.
+- POST /api/v1/predict: Accepts PlayerPredictionRequest, returns PlayerPredictionResponse.
+- GET /docs & GET /redoc: Interactive API documentation.
+
+Predictor Flow:
+1. Pydantic validates input and computes 11 per-90 metrics via compute_per90_metrics().
+2. MarketValuePredictor builds 28-feature DataFrame.
+3. Scikit-Learn ColumnTransformer applies OneHotEncoder and StandardScaler.
+4. GradientBoostingRegressor predicts log_market_value.
+5. np.expm1 converts log target back to raw Euros.
+6. Returns formatted Euro string and rounded numeric value.
+
+================================================================================
+10. API DETAILS & REQUEST/RESPONSE SCHEMAS
+================================================================================
+Endpoint: POST /api/v1/predict
+Content-Type: application/json
+
+Request Payload Example:
+{
+  "league": "Premier League",
+  "position": "F",
+  "minutes_played": 2200,
+  "appearances": 26,
+  "matches_started": 24,
+  "rating": 7.4,
+  "goals": 14,
+  "assists": 6,
+  "expected_goals": 13.2,
+  "expected_assists": 5.1,
+  "total_shots": 68,
+  "shots_on_target": 28,
+  "tackles": 18,
+  "interceptions": 8,
+  "saves": 0,
+  "yellow_cards": 3,
+  "red_cards": 0
+}
+
+Response Payload Example:
+{
+  "predicted_market_value_euros": 77349903.66,
+  "formatted_market_value": "€77,349,903.66",
+  "status": "success"
+}
+
+================================================================================
+11. DATASET & DATA ENGINEERING AUDIT
+================================================================================
+Files Inspected:
+- all_player_profiles.csv: 4,588 rows, 5 columns (player_id, name, league, position, market_value).
+  Missing values: market_value (360), position (23).
+- all_player_stats.csv: 3,730 rows, 17 columns. Missing values: expected_goals (548),
+  expected_assists (21).
+- cleaned_player_data.csv: 3,670 rows, 35 columns. ZERO missing values. ZERO duplicates.
+- src/data/playersData.json: 3,670 records, identical to cleaned_player_data.csv.
+
+Data Transformations:
+- Inner join on player_id between profiles and stats.
+- 60 records dropped due to NaN in market_value.
+- 548 missing expected_goals values imputed with 0.0 (not median).
+- Log target: log_market_value = np.log1p(market_value).
+- Target stats: Min €23K, 25% €1.1M, Median €3.7M, Mean €9.92M, 75% €11.6M, Max €218M.
+
+Dataset Consumers:
+- Model Training: cleaned_player_data.csv
+- Prediction API: footballiq_best_model.joblib (primary), cleaned_player_data.csv (fallback)
+- Player Database: src/data/playersData.json (client-side)
+
+================================================================================
+12. MACHINE LEARNING PIPELINE & MODEL EVALUATION
+================================================================================
+Active Model: footballiq_best_model.joblib (146,642 bytes)
+Pipeline:
+- Preprocessor: ColumnTransformer
+  - OneHotEncoder(drop='first', handle_unknown='ignore') on league, position (10 categories)
+  - StandardScaler() on 26 numeric performance metrics
+- Regressor: GradientBoostingRegressor(n_estimators=100, learning_rate=0.1, max_depth=3, random_state=42)
+
+Historical 5-Fold Cross-Validation Results (from model_results/model_comparison_results.csv):
+- Gradient Boosting: MAE €6,049,306 | RMSE €12,463,036 | R2 (Log) 0.5584 | MAPE 133.06% (BEST)
+- LightGBM:          MAE €6,049,489 | RMSE €12,425,852 | R2 (Log) 0.5655 | MAPE 131.17%
+- XGBoost:           MAE €6,050,102 | RMSE €12,493,071 | R2 (Log) 0.5592 | MAPE 132.75%
+- Random Forest:     MAE €6,135,014 | RMSE €12,767,137 | R2 (Log) 0.5545 | MAPE 134.89%
+- Extra Trees:       MAE €6,143,262 | RMSE €12,633,238 | R2 (Log) 0.5518 | MAPE 134.70%
+- Dummy (Median):    MAE €8,558,069 | RMSE €17,586,731 | R2 (Log) -0.0060| MAPE 342.78%
+- Ridge (Unscaled):  MAE €976,163,205| RMSE €26.28B    | R2 (Log) 0.4830 | MAPE 373,145%
+
+Full Dataset Performance (Current Artifact):
+- MAE: €5,508,428.21 (~€5.51M)
+- RMSE: €11,390,628.31 (~€11.39M)
+- R2 (Log Target): 0.6544
+- R2 (Raw Target): 0.5251
+- MAPE: 105.83%
+
+================================================================================
+13. HERO DESIGN & VISUAL DEPTH AUDIT
+================================================================================
+1. Cutout Asset: public/hero-player-cutout.png is a real 4-channel RGBA transparent
+   PNG (1672x941) with alpha channel varying from 0 to 255 (34.1% opaque pixels).
+2. Background Asset Issue: Hero.jsx Layer 1 loads /hero-player.png (contains player
+   on pitch). public/hero-stadium-bg.png exists but is unused.
+3. Duplicate Player Issue: Because Layer 1 uses hero-player.png, Jude Bellingham
+   appears twice: once blurred in the background and once sharp in the foreground.
+4. Stacking Collision: Player cutout layer has z-index: 4 and sits at top: 180px,
+   placing the cutout in front of the headline text (z-index: 3) and search bar.
+5. Scroll Depth Animation: requestAnimationFrame computes piecewise keyframes
+   (scale 1.0 -> 0.55, blur 0 -> 7px, opacity 1.0 -> 0.30, translateY 0 -> -60px).
+   Only the player cutout recedes; background remains static.
+
+================================================================================
+14. TESTING, QA, AND BUILD RESULTS
+================================================================================
+Backend Tests (python test_api.py):
+- Test 1 (GET /): PASS (Status 200)
+- Test 2 (GET /health): PASS (Status 200, Model Loaded: True)
+- Test 3 (POST /api/v1/predict - PL Forward): PASS (€77,349,903.66)
+- Test 4 (POST /api/v1/predict - LaLiga Midfielder): PASS (€65,680,198.41)
+- Test 5 (POST /api/v1/predict - Validation Error): PASS (Status 422)
+Overall Backend Test Result: 5/5 PASSED (100%).
+
+Frontend Build (npm run build):
+- Build completed in 2.17s.
+- Assets generated: dist/index.html (1.32 kB), dist/assets/index-DU-P1HSc.css (33.70 kB),
+  dist/assets/index-BGaCr9Xc.js (2,991.98 kB).
+- Vite chunk warning triggered (>500 kB) due to playersData.json inclusion.
+
+Frontend Lint (npm run lint):
+- FAILED (Exit code 1): 'eslint' is not recognized.
+
+================================================================================
+15. KNOWN BUGS & TECHNICAL DEBT
+================================================================================
+1. Hero Double-Player Display (hero-player.png loaded in Layer 1 instead of stadium bg).
+2. Hero Text Occlusion (cutout z-index: 4 over headline z-index: 3).
+3. Missing leagues in /players table filter (Liga Portugal & Super Lig omitted).
+4. Hardcoded benchmark multipliers in ValuationChart.jsx (* 0.62, * 1.15, * 0.45).
+5. Hardcoded confidence score (94.2%) and status pill ("FastAPI Backend Online").
+6. Hardcoded path in train_models.py (r"c:\Users\Rayan Das\Desktop\laliga").
+7. Orphaned files SearchBar.jsx and PlayerPortrait.jsx left in repo.
+8. Missing packages in requirements.txt (matplotlib, seaborn, httpx).
+9. npm run lint failure due to uninstalled eslint.
+
+================================================================================
+16. SECURITY & CONFIGURATION FINDINGS
+================================================================================
+- Environment: .env contains VITE_API_BASE_URL=http://localhost:8000. No secrets.
+- Secrets Scan: Clean. Zero credentials, API keys, or private keys exposed.
+- CORS Security Risk: allow_origins=["*"] with allow_credentials=True in app/main.py
+  is invalid per W3C CORS standards and allows arbitrary cross-origin access.
+- Version Control: Project is NOT initialized as a Git repository. No .gitignore exists.
+
+================================================================================
+17. PRIORITIZED REMAINING TASKS (P0 TO P4)
+================================================================================
+P0 — Critical (Immediate Fixes for Correct Operation):
+1. Fix Hero Double Player: Swap /hero-player.png in Layer 1 to hero-stadium-bg.png.
+   (Hero.jsx, Hero.css | Low complexity).
+2. Fix Hero Stacking & Text Occlusion: Lower cutout z-index or adjust layout to
+   prevent player from covering headline and search bar. (Hero.jsx, Hero.css | Low).
+3. Fix CORS Configuration: Remove wildcard with credentials; specify explicit origins.
+   (app/main.py | Low).
+4. Repair Linting & Dependencies: Add eslint to package.json, add matplotlib,
+   seaborn, httpx to requirements.txt. (package.json, requirements.txt | Low).
+
+P1 — Core MVP Functionality:
+1. Add Missing Leagues: Add Liga Portugal and Super Lig to /players filter select.
+   (src/pages/Players.jsx | Low).
+2. Route Harmonization: Connect /predict success state to /result with state/params.
+   (Predict.jsx, Result.jsx, App.jsx | Low).
+3. Dynamic Valuation Benchmarks: Compute cohort statistics in ValuationChart.jsx
+   instead of hardcoded multipliers. (ValuationChart.jsx | Medium).
+4. Synchronize Methodology Documentation: Update R2 and MAE copy to match real CV
+   metrics (R2 0.5584, MAE €6.05M). (Methodology.jsx | Low).
+
+P2 — UI/UX and Visual Polish:
+1. Remove Orphaned Components: Delete SearchBar.* and PlayerPortrait.*. (Low).
+2. Live API Health Status in Footer: Connect Footer pill to checkApiHealth(). (Low).
+3. Code-Splitting: Lazy load or dynamically import playersData.json. (Medium).
+
+P3 — Advanced Features:
+1. Backend Database API: Implement GET /api/v1/players with pagination and filtering.
+   (app/main.py, app/models.py | Medium).
+2. Player Comparison Tool: Side-by-side scouting comparison view. (High).
+3. SHAP Feature Explanations: Local feature attribution breakdown. (High).
+
+P4 — Deployment and Production Readiness:
+1. Initialize Git & .gitignore: Add comprehensive .gitignore. (Low).
+2. Docker Containerization: Create Dockerfile and docker-compose.yml. (Medium).
+3. Path Invariance in Training Script: Replace hardcoded Windows path. (Low).
+4. Automated CI/CD Pipeline: GitHub Actions workflow for test and build. (Medium).
+
+================================================================================
+18. EXACT COMMANDS TO RUN FRONTEND & BACKEND
+================================================================================
+To Run the FastAPI Backend Server:
+  cd "c:\Users\Rayan Das\Desktop\Projects\FOOTBALL IQ"
+  python -m pip install -r requirements.txt
+  python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+
+  - API Root:      http://localhost:8000
+  - Swagger Docs:  http://localhost:8000/docs
+  - Health Check:  http://localhost:8000/health
+
+To Run the React + Vite Frontend:
+  cd "c:\Users\Rayan Das\Desktop\Projects\FOOTBALL IQ"
+  npm install
+  npm run dev
+
+  - Frontend UI:   http://localhost:3000
+
+To Run Tests and Build Checks:
+  python test_api.py   # Runs backend automated test suite
+  npm run build        # Compiles frontend production bundle
+
+================================================================================
+19. RECOMMENDED DEVELOPMENT ROADMAP
+================================================================================
+Sprint 1: Critical Stabilization & Visual Fixes (P0)
+- Replace Hero Layer 1 image with clean stadium background.
+- Adjust Hero z-index hierarchy and positioning.
+- Hardcode explicit allowed CORS origins in FastAPI.
+- Fix npm run lint and update requirements.txt.
+- Initialize Git repository and add .gitignore.
+
+Sprint 2: MVP Completion & UI Accuracy (P1)
+- Add Liga Portugal and Super Lig to /players filter.
+- Harmonize /predict to navigate cleanly to /result.
+- Replace ValuationChart hardcoded multipliers with cohort averages.
+- Synchronize Methodology text with actual model cross-validation results.
+
+Sprint 3: Performance & Polish (P2)
+- Code-split / lazy-load playersData.json to shrink main JS chunk from 3MB to <350kB.
+- Remove orphaned files (SearchBar, PlayerPortrait).
+- Connect Footer status pill to checkApiHealth() service.
+
+Sprint 4: Advanced Features & Production (P3-P4)
+- Build GET /api/v1/players on backend with database/pandas query params.
+- Create multi-stage Dockerfile and docker-compose orchestration.
+- Implement individualized SHAP / feature importance attribution.
+- Build player vs player scouting comparison tool.
+
+================================================================================
+20. FINAL SIGN-OFF & AUDIT CONCLUSIONS
+================================================================================
+This read-only audit confirmed that the FootballIQ platform possesses a fully
+functional, highly capable machine learning inference engine and a polished
+editorial frontend. The primary shortcomings are not structural failures, but
+visual layer misalignments in the Hero section, a CORS security misconfiguration,
+and client-side data bundling that can be resolved methodically in Sprint 1 and 2.
+
+Audit completed by Antigravity AI Assistant.
+Zero application code files were modified during this inspection.
+================================================================================
+

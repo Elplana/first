@@ -1,0 +1,37 @@
+.metric-card {
+  background-color: var(--color-fog);
+  border: 1px solid var(--color-mist);
+  padding: var(--space-5);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.metric-card-accent {
+  background-color: var(--color-ash);
+  border-color: var(--color-graphite);
+}
+
+.metric-label {
+  color: var(--color-steel);
+}
+
+.metric-value-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.metric-value {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 400;
+  line-height: 1.1;
+  color: var(--color-graphite);
+}
+
+.metric-subtext {
+  font-size: 12px;
+  color: var(--color-slate);
+}

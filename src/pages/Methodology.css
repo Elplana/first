@@ -1,0 +1,151 @@
+.methodology-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding-bottom: var(--space-6);
+}
+
+.methodology-title {
+  font-size: 48px;
+  margin-top: 4px;
+}
+
+.methodology-intro-box {
+  padding: var(--space-8);
+}
+
+.intro-lead-text {
+  font-size: 17px;
+  color: var(--color-steel);
+  line-height: 1.6;
+  max-width: 900px;
+}
+
+.methodology-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-6);
+}
+
+.methodology-card {
+  padding: var(--space-7);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  height: 100%;
+}
+
+.methodology-card-icon {
+  color: var(--color-graphite);
+}
+
+.card-heading {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--color-graphite);
+}
+
+.card-text {
+  font-size: 14px;
+  color: var(--color-steel);
+  line-height: 1.6;
+}
+
+.methodology-bullet-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--color-steel);
+}
+
+.methodology-bullet-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.methodology-bullet-list svg {
+  color: var(--color-graphite);
+  flex-shrink: 0;
+}
+
+.formula-box {
+  background-color: var(--color-canvas-white);
+  border: 1px solid var(--color-mist);
+  padding: 10px 16px;
+  border-radius: var(--radius-button);
+  font-family: monospace;
+  font-size: 13px;
+  color: var(--color-graphite);
+}
+
+.metrics-summary-table {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background-color: var(--color-canvas-white);
+  border: 1px solid var(--color-mist);
+  padding: 14px;
+  border-radius: var(--radius-card);
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--color-steel);
+}
+
+.summary-val {
+  font-weight: 500;
+  color: var(--color-graphite);
+}
+
+.analytical-notice-box {
+  display: flex;
+  gap: var(--space-6);
+  padding: var(--space-8);
+  align-items: flex-start;
+}
+
+.notice-icon {
+  color: var(--color-ember-orange);
+}
+
+.notice-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--color-graphite);
+}
+
+.notice-text {
+  font-size: 14px;
+  color: var(--color-steel);
+  line-height: 1.6;
+  margin-top: 6px;
+}
+
+@media (max-width: 900px) {
+  .methodology-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .methodology-title {
+    font-size: 32px;
+  }
+
+  .methodology-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-4);
+  }
+
+  .analytical-notice-box {
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+}
